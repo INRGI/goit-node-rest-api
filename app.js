@@ -1,14 +1,31 @@
-import express from "express";
-import morgan from "morgan";
-import cors from "cors";
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import morgan from 'morgan';
+import mongoose from 'mongoose';
+
+dotenv.config();
 
 import contactsRouter from "./routes/contactsRouter.js";
 
 const app = express();
 
+mongoose
+  .connect(process.env.MONGODB_URL)
+  .then(() => {
+    console.log('Database connection successful');
+  })
+  .catch((err) => {
+    console.log(err);
+    process.exit(1);
+  });
+
+  if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
+
 app.use(morgan("tiny"));
-app.use(cors());
 app.use(express.json());
+app.use(cors());
+
 
 app.use("/api/contacts", contactsRouter);
 
