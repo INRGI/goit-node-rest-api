@@ -3,8 +3,8 @@ import HttpError from './HttpError.js';
 
 const isValidId = (req, res, next) => {
     const { id } = req.params;
-    if (!isValidObjectId) {
-        return next(HttpError(404, "Incorect Id"))
+    if (!isValidObjectId(id)) {
+        return next(HttpError(404, "Not found"))
     }
     next()
 }
