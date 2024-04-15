@@ -69,7 +69,7 @@ export const updateContact = async (req, res, next) => {
       const { id } = req.params;
       const { _id: owner } = req.user;
       const result = await Contact.findByIdAndUpdate(id, req.body, { new: true }).where("owner").equals(owner);
-      if (!result) throw HttpError(400, error.message)
+      if (!result) throw HttpError(400, "Not Found")
         
       res.json(result);
     } catch (error) {
@@ -91,7 +91,7 @@ export const updateStatusContact = async (req, res, next) => {
     if (error) throw HttpError(400, error.message);
     
     const result = await Contact.findByIdAndUpdate(id, req.body, { new: true }).where("owner").equals(owner);
-    if (!result) throw HttpError(400, error.message)
+    if (!result) throw HttpError(400, "Not Found")
         
     res.json(result);
   } catch (error) {
