@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import gravatar from 'gravatar';
 
 import HttpError from '../helpers/HttpError.js';
 import { User } from '../models/userModels.js'; 
@@ -16,7 +17,9 @@ export const register = async (req, res, next) => {
         if (user) throw HttpError(409, "Email in use");
 
         const hashPassword = await bcrypt.hash(password, 8);
-        const newUser = await User.create({ ...req.body, password: hashPassword });
+
+        const avatar = gravatar.url(email);
+        const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL: avatar });
 
         res.status(201).json(
             {
