@@ -1,9 +1,13 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import 'dotenv/config';
+import gravatar from 'gravatar';
+import fs from "fs/promises";
+import path from "path";
 
 import HttpError from '../helpers/HttpError.js';
 import { User } from '../models/userModels.js'; 
+import Jimp from 'jimp';
 
 
 const { SECRET_KEY } = process.env;
@@ -16,7 +20,9 @@ export const register = async (req, res, next) => {
         if (user) throw HttpError(409, "Email in use");
 
         const hashPassword = await bcrypt.hash(password, 8);
-        const newUser = await User.create({ ...req.body, password: hashPassword });
+
+        const avatar = gravatar.url(email);
+        const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL: avatar });
 
         res.status(201).json(
             {
@@ -88,3 +94,34 @@ export const current = async (req, res, next) => {
     }
 };
 
+const avatarsPath = path.resolve("public", "avatars");
+
+
+export const updateAvatar = async (req, res, next) => {
+    try {
+        const { _id } = req.user;
+
+        if (!req.file || !req.file.path) {
+            throw HttpError(400);
+        }
+
+        const { path: oldPath, filename } = req.file;
+
+        Jimp.read(oldPath, (err, lenna) => {
+            if (err) throw HttpError(401);
+            lenna
+                .resize(250, 250)
+                .write(`${avatarsPath}\\${filename}`);
+            fs.rm(oldPath);
+        })
+
+        const avatarURL = path.join("avatars", filename);
+        
+        const user = await User.findByIdAndUpdate(_id, { avatarURL });
+        if (!user) throw HttpError(401);
+        
+        return res.json({ avatarURL });
+    } catch (error) {
+        next(error);
+    }
+};
