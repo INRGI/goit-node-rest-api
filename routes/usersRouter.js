@@ -14,4 +14,6 @@ authRouter.post('/login', validateBody(loginSchema), login);
 authRouter.post('/logout', authenticate, logout);
 authRouter.patch("/avatars", authenticate, upload.single("avatar"), updateAvatar);
 
+authRouter.get("/verify/:verificationToken",)
+
 export default authRouter;

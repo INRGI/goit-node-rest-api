@@ -8,6 +8,8 @@ import path from "path";
 import HttpError from '../helpers/HttpError.js';
 import { User } from '../models/userModels.js'; 
 import Jimp from 'jimp';
+import { nanoid } from 'nanoid';
+import { sendEmail } from '../helpers/sendEmail.js';
 
 
 const { SECRET_KEY } = process.env;
@@ -20,9 +22,27 @@ export const register = async (req, res, next) => {
         if (user) throw HttpError(409, "Email in use");
 
         const hashPassword = await bcrypt.hash(password, 8);
+        
+        const verifyToken = nanoid();
 
         const avatar = gravatar.url(email);
-        const newUser = await User.create({ ...req.body, password: hashPassword, avatarURL: avatar });
+        const newUser = await User.create({
+            ...req.body,
+            password: hashPassword,
+            avatarURL: avatar,
+            verificationToken: verifyToken
+        });
+
+        const verifyEmail = {
+            to: email,
+            subject: "Verification Token",
+            html: `
+                <h2>Hello here your verification Token</h2>
+                <a href="${req.protocol}://${req.get('host')}/users/verify/${verifyToken}">Click here to verify your account</a>
+            `
+        };
+
+        sendEmail(verifyEmail);
 
         res.status(201).json(
             {
@@ -125,3 +145,4 @@ export const updateAvatar = async (req, res, next) => {
         next(error);
     }
 };
+
