@@ -171,3 +171,30 @@ export const verify = async (req, res, next) => {
         next(error);
     }
 };
+
+export const verifyAgain = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+
+        const user = await User.findOne({ email });
+        if (!user) throw HttpError(404, "User not found");
+
+        if (user.verify) {
+            throw HttpError(400, "Verification has already been passed");
+        }
+
+        const verifyEmail = {
+            to: email,
+            subject: "Verification Token",
+            html: `
+                <h2>Hello here your verification Token</h2>
+                <a href="${req.protocol}://${req.get('host')}/api/users/verify/${user.verificationToken}">Click here to verify your account</a>
+            `
+        };
+
+        sendEmail(verifyEmail);
+        res.json({ message: "Verification email sent" });
+    } catch (error) {
+        next(error);
+    }
+};
