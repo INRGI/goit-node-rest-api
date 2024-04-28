@@ -38,7 +38,7 @@ export const register = async (req, res, next) => {
             subject: "Verification Token",
             html: `
                 <h2>Hello here your verification Token</h2>
-                <a href="${req.protocol}://${req.get('host')}/users/verify/${verifyToken}">Click here to verify your account</a>
+                <a href="${req.protocol}://${req.get('host')}/api/users/verify/${verifyToken}">Click here to verify your account</a>
             `
         };
 
@@ -63,6 +63,11 @@ export const login = async (req, res, next) => {
         const user = await User.findOne({ email });
         
         if (!user) throw HttpError(401, "Email or password is wrong");
+
+        if (!user.verify) {
+            throw HttpError(401, "Email is not verified");
+        }
+
 
         const chechPassword = await bcrypt.compare(password, user.password);
         if (!chechPassword) throw HttpError(401, "Email or password is wrong");
@@ -146,3 +151,23 @@ export const updateAvatar = async (req, res, next) => {
     }
 };
 
+export const verify = async (req, res, next) => {
+    try {
+        const { verificationToken } = req.params;
+
+        const user =  await User.findOneAndUpdate(
+            { verificationToken },
+            {
+                verificationToken: null,
+                verify: true,
+            }
+        );
+        if (!user) throw HttpError(404, 'User not found');
+
+        res.json({ mesage: "Verification successful" });
+
+
+    } catch (error) {
+        next(error);
+    }
+};

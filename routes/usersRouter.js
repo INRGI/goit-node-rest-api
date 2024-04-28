@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { login, register, logout, current, updateAvatar } from '../controllers/usersControllers.js';
+import { login, register, logout, current, updateAvatar, verify } from '../controllers/usersControllers.js';
 import validateBody from '../helpers/validateBody.js';
 import { registerSchema, loginSchema } from '../schemas/usersSchemas.js';
 import { authenticate } from '../helpers/authenticate.js';
@@ -14,6 +14,6 @@ authRouter.post('/login', validateBody(loginSchema), login);
 authRouter.post('/logout', authenticate, logout);
 authRouter.patch("/avatars", authenticate, upload.single("avatar"), updateAvatar);
 
-authRouter.get("/verify/:verificationToken",)
+authRouter.get("/verify/:verificationToken", verify);
 
 export default authRouter;
